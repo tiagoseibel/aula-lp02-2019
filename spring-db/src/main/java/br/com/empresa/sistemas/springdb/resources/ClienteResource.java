@@ -1,11 +1,20 @@
 package br.com.empresa.sistemas.springdb.resources;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,53 +29,84 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.empresa.sistemas.springdb.model.Cliente;
 import br.com.empresa.sistemas.springdb.repository.ClienteRepository;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
 
 @RestController
 @RequestMapping("clientes")
 public class ClienteResource {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
-    
-    @GetMapping
-    public List<Cliente> findAll() {
-        return clienteRepository.findAll();
-    }
+   @Autowired
+   private ClienteRepository clienteRepository;
 
-    @GetMapping("/search")
-    public List<Cliente> findByNome(@RequestParam("nome") String nome) {
-       return clienteRepository.findByNome(nome);
-    }
+   @Autowired
+   private DataSource localDataSource;
 
-    @GetMapping("/search2")
-    public List<Cliente> findByNomeLike(@RequestParam("nome") String nome) {
-       return clienteRepository.pesquisaPorNome("%"+nome+"%");
-    }
+   @GetMapping
+   public List<Cliente> findAll() {
+      return clienteRepository.findAll();
+   }
 
-    @PostMapping
-    public ResponseEntity<Cliente> salvar(@RequestBody Cliente cliente) {
+   @GetMapping("/search")
+   public List<Cliente> findByNome(@RequestParam("nome") String nome) {
+      return clienteRepository.findByNome(nome);
+   }
 
-        Cliente clienteSalvo = clienteRepository.save(cliente);
+   @GetMapping("/search2")
+   public List<Cliente> findByNomeLike(@RequestParam("nome") String nome) {
+      return clienteRepository.pesquisaPorNome("%" + nome + "%");
+   }
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{codigo}")
-                        .buildAndExpand(clienteSalvo.getCodigo()).toUri();
+   @PostMapping
+   public ResponseEntity<Cliente> salvar(@RequestBody Cliente cliente) {
 
-        return ResponseEntity.created(location).body(clienteSalvo);
-    }
+      Cliente clienteSalvo = clienteRepository.save(cliente);
 
-    @GetMapping("/{codigo}")
-    public ResponseEntity<Cliente> findByCodigo(@PathVariable Integer codigo) {
-        try {
-            Cliente cliente = clienteRepository.findById(codigo).get();
-            return ResponseEntity.ok(cliente);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
+      URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{codigo}")
+            .buildAndExpand(clienteSalvo.getCodigo()).toUri();
 
-    @DeleteMapping("/{codigo}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@PathVariable Integer codigo) {
-        clienteRepository.deleteById(codigo);
-    }
+      return ResponseEntity.created(location).body(clienteSalvo);
+   }
+
+   @GetMapping("/{codigo}")
+   public ResponseEntity<Cliente> findByCodigo(@PathVariable Integer codigo) {
+      try {
+         Cliente cliente = clienteRepository.findById(codigo).get();
+         return ResponseEntity.ok(cliente);
+      } catch (NoSuchElementException e) {
+         return ResponseEntity.notFound().build();
+      }
+   }
+
+   @DeleteMapping("/{codigo}")
+   @ResponseStatus(HttpStatus.NO_CONTENT)
+   public void remove(@PathVariable Integer codigo) {
+      clienteRepository.deleteById(codigo);
+   }
+
+   @GetMapping("/report")
+   public ResponseEntity<byte[]> relatorioClientes() {
+      Map<String, Object> parametros = new HashMap<>();
+      parametros.put("REPORT_LOCALE", new Locale("pt", "BR"));
+
+      byte[] reportBytes = null;
+
+      try {
+         InputStream io = this.getClass().getResourceAsStream("/reports/clientes_report.jasper");
+         JasperPrint jasperPrint = JasperFillManager.fillReport(io, parametros, localDataSource.getConnection());
+
+         reportBytes = JasperExportManager.exportReportToPdf(jasperPrint);
+      } catch (JRException | SQLException ex) {
+         return ResponseEntity.noContent().build();
+      }
+
+      return ResponseEntity.ok()
+         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+         //.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report.pdf\"")
+         .body(reportBytes);
+
+   }
+
 }

@@ -1,0 +1,13 @@
+body {
+    font-family: sans-serif, Arial, Helvetica, sans-serif;
+}
+
+.navbar {
+    background-color: dodgerblue;
+    min-height: 20px;
+}
+
+.navbar-content {
+    font-size: 14;
+    color: #ffffff;
+}
