@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.sql.DataSource;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -60,7 +61,7 @@ public class ClienteResource {
    }
 
    @PostMapping
-   public ResponseEntity<Cliente> salvar(@RequestBody Cliente cliente) {
+   public ResponseEntity<Cliente> salvar(@Valid @RequestBody Cliente cliente) {
 
       Cliente clienteSalvo = clienteRepository.save(cliente);
 
