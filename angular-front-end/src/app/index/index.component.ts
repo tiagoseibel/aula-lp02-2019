@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ClienteService } from '../cliente.service';
 import { Cliente } from '../cliente-model';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
    selector: 'app-index',
@@ -12,10 +13,7 @@ export class IndexComponent implements OnInit {
    constructor(private _clienteService: ClienteService) { }
 
    lista: Cliente[];
-
    myform: FormGroup;
-
-   teste: string;
 
    ngOnInit() {
 
@@ -27,47 +25,39 @@ export class IndexComponent implements OnInit {
             nome: new FormControl()
          }
       );
-
    }
 
    public save(): void {
-      const cli = 
+      const cli =
          Object.assign({}, this.myform.value) as Cliente;
 
       this._clienteService.save(cli).subscribe(
          (result) => {
             this.load();
-         },
-         (erro) => {
-            console.log('erro: ' + erro.message);
-         }, () => {
-            console.log('sempre');
+         }, (error: HttpErrorResponse) => {
+
+            if (error.status == 400) {
+               alert('Erro: ' + error.error);
+            } else {
+               alert("Houve um erro ao processar requisição!");
+            }
 
          }
       );
-
-      this._clienteService.listar().subscribe(
-         (result) => { this.lista = result }
-      );
    }
-
 
    public load() {
       this._clienteService.listar().subscribe(
          (result) => { this.lista = result }
-      );       
+      );
    }
 
    public delete(cli?: Cliente) {
       this._clienteService.delete(cli.codigo).subscribe(
          (resultado) => {
-            console.log('OK');
-           this.load();
-         }, () => {
-
+            this.load();
          }
       );
-
    }
 
    public mostraRelatorio(): void {

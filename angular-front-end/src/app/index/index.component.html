@@ -1,18 +1,19 @@
 <div style="text-align: center; padding: 5px">Cadastro de Clientes</div>
+<br>
+
 <form [formGroup]="myform" (ngSubmit)="save()">
-      <label>Código:</label>
-      <input type="text" formControlName="codigo" >
-      <br>
-      <label>Nome:</label>
-      <input type="text" formControlName="nome" >
-      <br>
-      <button type="submit">Salvar</button>
-      <app-input-aula [(texto)]="teste"></app-input-aula>
-      {{teste}}
+   <label>Código:</label>
+   <input type="text" formControlName="codigo">
+   <br>
+   <label>Nome:</label>
+   <input type="text" formControlName="nome">
+   <br>
+   <button type="submit">Salvar</button>
 </form>
 <br>
+
 <div class="container" style="width: 100%">
-   <table>
+   <table width="100%">
       <tr>
          <th>Código</th>
          <th>Nome</th>
@@ -26,4 +27,5 @@
       </tr>
    </table>
 </div>
+
 <button type="button" (click)="mostraRelatorio()">Gerar relatório</button>

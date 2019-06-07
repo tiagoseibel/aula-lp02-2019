@@ -9,6 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.Length;
+
 @Entity
 @Table(name="clientes")
 public class Cliente {
@@ -16,6 +18,7 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int codigo;
     @NotNull
+    @Length(min=10, max=100)
     private String nome;
 
     public int getCodigo() {
